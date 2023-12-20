@@ -86,7 +86,7 @@
                         <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown"
                             aria-label="Open user menu">
                             <span class="avatar avatar-sm"
-                                style="background-image: url(../static/avatars/000m.jpg)"></span>
+                                style="background-image: url(../../static/avatars/000m.jpg)"></span>
                             <div class="d-none d-xl-block ps-2">
                                 <div>Paweł Kuna</div>
                                 <div class="mt-1 small text-muted">UI Designer</div>
@@ -157,8 +157,9 @@
                                     </svg>
                                     Create new post
                                 </a>
-                                <a href="#" class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal"
-                                    data-bs-target="#modal-report" aria-label="Create new report">
+                                <a href="{{ route('posts.create') }}" class="btn btn-primary d-sm-none btn-icon"
+                                    data-bs-toggle="modal" data-bs-target="#modal-report"
+                                    aria-label="Create new report">
                                     <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
@@ -211,7 +212,7 @@
                     alerts.forEach(function(alert) {
                         alert.style.display = 'none';
                     });
-                }, 10000);
+                }, 1000000000);
                 var closeButtons = document.querySelectorAll('#custom-alerts .btn-close');
                 closeButtons.forEach(function(button) {
                     button.addEventListener('click', function() {

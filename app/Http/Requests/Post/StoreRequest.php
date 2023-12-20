@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Xác định liệu người dùng có được phép thực hiện yêu cầu hay không.
      *
      * @return bool
      */
@@ -17,7 +17,7 @@ class StoreRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Lấy ra các quy tắc xác minh áp dụng cho yêu cầu.
      *
      * @return array<string, mixed>
      */
@@ -27,9 +27,17 @@ class StoreRequest extends FormRequest
             'title' => 'required|max:255',
             'is_featured' => 'required',
             'status' => 'required',
-            'excerpt' => 'required:max:255',
+            'excerpt' => 'required|max:255',
+            'image' => 'required|mimes:jpeg,png,jpg,svg|max:2048',
             'content' => 'required',
-            'posted_at' => 'required|date',
+            'posted_at' => 'required|date'
         ];
     }
+
+    /**
+     * Trích xuất URL hình ảnh từ trường nội dung.
+     *
+     * @param  string  $content
+     * @return array
+     */
 }

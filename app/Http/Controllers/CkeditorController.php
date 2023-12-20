@@ -10,35 +10,41 @@ class CkeditorController extends Controller
     //
     public function upload(Request $request)
     {
-        if ($request->hasFile('upload')) {
-            $originalName = $request->file('upload')->getClientOriginalName();
-            $fileName = pathinfo($originalName, PATHINFO_FILENAME);
-            $extension = $request->file('upload')->getClientOriginalExtension();
-            $fileName = $fileName . '_' . time() . '.' . $extension;
+        try {
+            if ($request->hasFile('upload')) {
+                $originalName = $request->file('upload')->getClientOriginalName();
+                $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+                $extension = $request->file('upload')->getClientOriginalExtension();
+                $fileName = $fileName . '_' . time() . '.' . $extension;
 
-            $request->file('upload')->move(public_path('uploads/gallery'), $fileName);
+                $request->file('upload')->move(public_path('uploads/gallery'), $fileName);
 
-            $url = asset('uploads/gallery/' . $fileName);
+                $url = asset('uploads/gallery/' . $fileName);
 
-            return response()->json(['fileName' => $fileName, 'uploaded' => 1, 'url' => $url]);
+                return response()->json(['fileName' => $fileName, 'uploaded' => 1, 'url' => $url]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function store(Request $request)
-    {
-        dd($request->all());
-    }
+    // public function store(Request $request)
+    // {
+    //     dd($request->all());
+    // }
 
     public function deleteImages(Request $request)
     {
         try {
-            $imagesToDelete = $request->input('images');
+            $imagesToDelete = $request->input('imagesToDelete');
             $galleryPath = public_path('uploads/gallery');
 
             foreach ($imagesToDelete as $image) {
-                $imagePath = $galleryPath . '/' . basename($image);
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
+                $imagePath = $galleryPath . '/' . $image;
+
+                // Kiểm tra xem tập tin có tồn tại trước khi thử xóa
+                if (File::exists($imagePath)) {
+                    File::delete($imagePath);
                 }
             }
 

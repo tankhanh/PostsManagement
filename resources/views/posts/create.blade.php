@@ -103,13 +103,10 @@ function ChangeToSlug() {
                     <label class="form-label">Excerpt</label>
                     <textarea id="Excerpt" class="form-control" name="excerpt"></textarea>
                 </div>
-                <form method="post" action="{{ route('ckeditor.store') }}">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="form-label">Content</label>
-                        <textarea id="Content" class="form-control" name="content"></textarea>
-                    </div>
-                </form>
+                <div class="mb-3">
+                    <label class="form-label">Content</label>
+                    <textarea id="Content" class="form-control" name="content"></textarea>
+                </div>
                 <div class="col-lg-6">
                     <div class="mb-3">
                         <label class="form-label">Posted At</label>
@@ -170,31 +167,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = editor.getData();
                 const regex = /<img[^>]+src="([^">]+)"/g;
                 let match;
-                const images = [];
+                const imagesInGallery = [];
 
                 while ((match = regex.exec(data)) !== null) {
-                    images.push(match[1]);
+                    imagesInGallery.push(match[1]);
                 }
 
                 // So sánh với danh sách các ảnh đã upload trước đó
-                const deletedImages = uploadedImages.filter(img => !images.includes(img));
+                const deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
 
                 // Xóa các ảnh không còn tồn tại trong nội dung
                 deleteUnusedImages(deletedImages);
 
                 // Cập nhật danh sách các ảnh đã upload
                 uploadedImages.length = 0;
-                Array.prototype.push.apply(uploadedImages, images);
+                Array.prototype.push.apply(uploadedImages, imagesInGallery);
             });
         })
         .catch(error => {
             console.error(error);
         });
 
-    function deleteUnusedImages(images) {
-        if (images.length > 0) {
+    function deleteUnusedImages(imagesInGallery) {
+        if (imagesInGallery.length > 0) {
             axios.post("{{ route('ckeditor.deleteImages') }}", {
-                    images: images
+                    imagesInGallery: imagesInGallery
                 })
                 .then(response => {
                     console.log(response.data);

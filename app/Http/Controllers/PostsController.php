@@ -7,6 +7,8 @@ use App\Http\Requests\Post\UpdateRequest;
 use App\Models\Posts;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
+use Sunra\PhpSimple\HtmlDomParser;
+use Illuminate\Validation\ValidationException;
 
 class PostsController extends Controller
 {
@@ -17,7 +19,7 @@ class PostsController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = 5; 
+        $perPage = 5;
         $search = $request->input('search');
         $entriesCount = Posts::where('title', 'like', '%' . $search . '%')->count();
         $posts = Posts::orderBy('created_at', 'DESC')->where('title', 'like', '%' . $search . '%')->paginate($perPage);
@@ -44,20 +46,17 @@ class PostsController extends Controller
      */
     public function store(StoreRequest $request)
     {
-        $imagePaths = [];
-        
         try {
             $post = new Posts();
-            
+
             $post->title = $request->title;
             $post->slug = $request->slug;
             $post->is_featured = $request->is_featured;
             $post->status = $request->status;
             $post->excerpt = $request->excerpt;
             $post->content = $request->content;
-            $contentPaths = $this->getImagePathsFromContent($request->content);
             $post->posted_at = $request->posted_at;
-            
+
             $file = $request->image;
 
             if (!empty($file)) {
@@ -65,41 +64,40 @@ class PostsController extends Controller
                 if (!empty($post->image)) {
                     $old_image_path = public_path('uploads/image/' . $post->image);
                     if (File::exists($old_image_path)) {
-                        File::delete($old_image_path); // Xóa tệp hình ảnh cũ
+                        File::delete($old_image_path);
                     }
                 }
-                
-                $request->validate([
-                    'image' => 'required|mimes:jpeg,png,jpg,svg|max:2048'
-                ], [
-                    'image.required' => 'Please enter Image',
-                    'image.mimes' => 'Images must be jpeg, png, jpg, svg',
-                ]);
-                
+
                 $fileName = time() . '-' . $file->getClientOriginalName();
                 $post->image = $fileName;
                 $file->move(public_path('uploads/image/'), $fileName);
             }
-            
-            $request->session()->put('tempImages', $imagePaths);
+
             $post->save();
-            
+
             return redirect()->route('posts.index')->with('success', 'Create post successfully');
+        } catch (ValidationException $e) {
+            // Validation failed, delete any temporary images
+            $contentImages = $request->input('contentImages', []);
+            $this->deleteImagesInContent($contentImages);
+
+            // Delete image if it exists
+            if (!empty($post->content)) {
+                // Lấy danh sách ảnh từ trường content
+                $contentPaths = $this->getImagePathsFromContent($post->content);
+
+                // Xóa ảnh từ trường content
+                $this->deleteImagesInContent($contentPaths);
+            }
+
+            return redirect()->back()->withInput()->withErrors($e->validator)->with('error', 'Lỗi xác nhận. Vui lòng kiểm tra thông tin nhập.');
         } catch (\Exception $e) {
-            // Nếu có lỗi, xóa ảnh từ danh sách tạm thời và chuyển hướng với thông báo lỗi
-            $tempImages = $request->session()->get('tempImages', []);
-            $this->deleteImages($tempImages);
+            // Xóa các hình ảnh tạm thời từ trường content
+            $contentImages = $request->input('contentImages', []);
+            $this->deleteImages($contentImages);
+
             return redirect()->back()->withInput()->with('error', 'Error creating post: ' . $e->getMessage());
         }
-    }
-    protected function getImagePathsFromContent($content)
-    {
-        $pattern = '/<img[^>]+src\s*=\s*["\']([^"\']+)["\']/';
-
-        preg_match_all($pattern, $content, $matches);
-
-        // Lấy ra danh sách đường dẫn hình ảnh
-        return isset($matches[1]) ? $matches[1] : [];
     }
 
     /**
@@ -161,27 +159,22 @@ class PostsController extends Controller
         $file = $request->image;
 
         if (!empty($file)) {
+            // Kiểm tra xem tệp hình ảnh cũ có tồn tại không
             if (!empty($post->image)) {
                 $old_image_path = public_path('uploads/image/' . $post->image);
-                if (file_exists($old_image_path)) {
-                    unlink($old_image_path);
+                if (File::exists($old_image_path)) {
+                    File::delete($old_image_path);
                 }
             }
-
-            $request->validate([
-                'image' => 'required|mimes:jpeg,png,jpg,svg|max:2048'
-            ], [
-                'image.required' => 'Please enter Image',
-                'image.mimes' => 'Images must be jpeg, png, jpg, svg',
-            ]);
 
             $fileName = time() . '-' . $file->getClientOriginalName();
             $post->image = $fileName;
             $file->move(public_path('uploads/image/'), $fileName);
         }
+
         $post->save();
 
-        return response()->redirect()->route('posts.detail', ['slug' => $post->slug])->with('success', 'Update post successfully');
+        return redirect()->route('posts.detail', ['slug' => $post->slug])->with('success', 'Update post successfully');
     }
 
     /**
@@ -223,7 +216,9 @@ class PostsController extends Controller
 
             foreach ($postsToDelete as $post) {
                 $imagePaths[] = $post->image;
+                // dd($imagePaths);
                 $contentPaths = array_merge($contentPaths, $this->getImagePathsFromContent($post->content));
+                // dd($contentPaths);
             }
 
             // Xóa bài viết
@@ -233,15 +228,13 @@ class PostsController extends Controller
             $this->deleteImages($imagePaths);
 
             // Xóa ảnh từ trường content
-            $this->deleteContent($contentPaths);
+            $this->deleteImagesInContent($contentPaths);
 
             return redirect()->route('posts.index')->with('success', 'Delete selected posts successfully');
         }
 
         return redirect()->route('posts.index')->with('warning', 'No posts selected for deletion');
-    }       
-    // Hàm xóa ảnh
-    // Hàm xóa ảnh
+    }
     protected function deleteImages($imagePaths)
     {
         foreach ($imagePaths as $imagePath) {
@@ -251,17 +244,41 @@ class PostsController extends Controller
                 File::delete($fullImagePath);
             }
         }
+        // dd($imagePath);
     }
+    protected function getImagePathsFromContent($content)
+    {
+        $imagePaths = [];
 
-// Hàm xóa nội dung
-    protected function deleteContent($contentPaths)
-        {
-            foreach ($contentPaths as $contentPath) {
-                $fullContentPath = public_path('uploads/gallery/' . $contentPath);
+        $dom = new \DOMDocument;
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($content);
+        libxml_clear_errors();
 
-                if (File::exists($fullContentPath)) {
-                    File::delete($fullContentPath);
-                }
+        $images = $dom->getElementsByTagName('img');
+
+        foreach ($images as $image) {
+            $src = $image->getAttribute('src');
+
+            if (!empty($src)) {
+                $imageName = basename($src);
+
+                $imagePaths[] = $imageName;
             }
         }
+
+        return $imagePaths;
+    }
+    protected function deleteImagesInContent($imagePathsInContent)
+    {
+        foreach ($imagePathsInContent as $imagePath) {
+            // Xây dựng đường dẫn đầy đủ của hình ảnh
+            $fullImagePath = public_path('uploads/gallery/' . $imagePath);
+
+            if (File::exists($fullImagePath)) {
+                File::delete($fullImagePath);
+            }
+        }
+        // dd($imagePathsInContent);
+    }
 }

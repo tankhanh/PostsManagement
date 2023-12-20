@@ -6,6 +6,7 @@
     visibility: hidden;
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script language="javascript">
 function ChangeToSlug() {
     var title, slug;
@@ -166,17 +167,105 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.readAsDataURL(profilePicInput.files[0]);
         }
     });
+
+
+    const contentTextarea = document.querySelector('#Content');
+    let uploadedImages = [];
+    let deletedImages = [];
+    let match;
+    let imagesInGallery = [];
+    ClassicEditor
+        .create(contentTextarea, {
+            ckfinder: {
+                uploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token()])}}",
+            },
+        })
+        .then(editor => {
+            editor.model.document.on('change:data', () => {
+                // Lấy danh sách các ảnh đã upload
+                console.log("Editor data has changed");
+                const data = editor.getData();
+                const regex = /<img[^>]+src="([^">]+)"/g;
+
+                while ((match = regex.exec(data)) !== null) {
+                    imagesInGallery.push(match[1]);
+                }
+
+                // So sánh với danh sách các ảnh đã upload trước đó
+                deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
+
+                // Xóa các ảnh không còn tồn tại trong nội dung
+                deleteUnusedImages(deletedImages, data);
+
+                // Cập nhật danh sách các ảnh đã upload
+                uploadedImages.length = 0;
+                Array.prototype.push.apply(uploadedImages, imagesInGallery);
+            });
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    function deleteUnusedImages(imagesInGallery, data) {
+        console.log("Server Response - imagesInGallery: ", imagesInGallery);
+        console.log("Server Response - data: ", data);
+        if (imagesInGallery.length > 0) {
+            // Lấy danh sách các ảnh đã upload trước đó
+            const allUploadedImages = [...uploadedImages];
+
+            // Tìm và thêm vào danh sách các ảnh đã upload những ảnh nằm ngoài nội dung
+            allUploadedImages.forEach(img => {
+                const regex = new RegExp(img, 'g');
+                const matches = (imagesInGallery.join(',') + data).match(regex);
+
+                if (!matches) {
+                    imagesInGallery.push(img);
+                }
+            });
+
+            // Hiển thị console log để kiểm tra
+            console.log("Các ảnh cần xóa: ", deletedImages);
+
+            // Gửi yêu cầu xóa ảnh đến server
+            axios.post("{{ route('ckeditor.deleteImages') }}", {
+                    imagesToDelete: deletedImages
+                })
+                .then(response => {
+                    console.log("Response từ server: ", response.data);
+
+                    // Sau khi xóa thành công, cập nhật danh sách ảnh đã upload
+                    uploadedImages = uploadedImages.filter(img => !deletedImages.includes(img));
+
+                    // Hiển thị console log để kiểm tra
+                    console.log("Danh sách ảnh trong Gallery sau khi xóa: ", uploadedImages);
+                })
+                .catch(error => {
+                    console.error("Lỗi từ server: ", error);
+                    console.error(error);
+                });
+        }
+    }
 });
 </script>
 <script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+<script src="{{ asset('js/ckfinder.js') }}"></script>
 <script>
 ClassicEditor
-    .create(document.querySelector('#Excerpt'))
-    .catch(error => {
-        console.error(error);
-    });
-ClassicEditor
-    .create(document.querySelector('#Content'))
+    .create(document.querySelector('#Excerpt'), {
+        toolbar: {
+            items: [
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'link',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'blockQuote'
+            ]
+        },
+    })
     .catch(error => {
         console.error(error);
     });
