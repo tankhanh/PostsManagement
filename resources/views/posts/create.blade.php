@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ClassicEditor
         .create(contentTextarea, {
             ckfinder: {
-                uploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token()])}}",
+                uploadUrl: "{{ route('ckeditor.upload', ['_token' => csrf_token()]) }}",
             },
         })
         .then(editor => {
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function deleteUnusedImages(imagesInGallery) {
         if (imagesInGallery.length > 0) {
             axios.post("{{ route('ckeditor.deleteImages') }}", {
-                    imagesInGallery: imagesInGallery
+                    imagesToDelete: imagesInGallery
                 })
                 .then(response => {
                     console.log(response.data);

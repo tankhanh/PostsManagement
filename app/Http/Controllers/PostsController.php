@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Sunra\PhpSimple\HtmlDomParser;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 class PostsController extends Controller
 {
@@ -62,15 +63,15 @@ class PostsController extends Controller
             if (!empty($file)) {
                 // Kiểm tra xem tệp hình ảnh cũ có tồn tại không
                 if (!empty($post->image)) {
-                    $old_image_path = public_path('uploads/image/' . $post->image);
-                    if (File::exists($old_image_path)) {
-                        File::delete($old_image_path);
+                    $oldImagePath = 'uploads/image/' . $post->image;
+                    if (Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
                     }
                 }
 
                 $fileName = time() . '-' . $file->getClientOriginalName();
                 $post->image = $fileName;
-                $file->move(public_path('uploads/image/'), $fileName);
+                Storage::disk('public')->put('uploads/image/' . $fileName, file_get_contents($file));
             }
 
             $post->save();
@@ -161,15 +162,15 @@ class PostsController extends Controller
         if (!empty($file)) {
             // Kiểm tra xem tệp hình ảnh cũ có tồn tại không
             if (!empty($post->image)) {
-                $old_image_path = public_path('uploads/image/' . $post->image);
-                if (File::exists($old_image_path)) {
-                    File::delete($old_image_path);
+                $old_image_path = 'uploads/image/' . $post->image;
+                if (Storage::disk('public')->exists($old_image_path)) {
+                    Storage::disk('public')->delete($old_image_path);
                 }
             }
 
             $fileName = time() . '-' . $file->getClientOriginalName();
             $post->image = $fileName;
-            $file->move(public_path('uploads/image/'), $fileName);
+            Storage::disk('public')->put('uploads/image/' . $fileName, file_get_contents($file));
         }
 
         $post->save();
@@ -238,10 +239,10 @@ class PostsController extends Controller
     protected function deleteImages($imagePaths)
     {
         foreach ($imagePaths as $imagePath) {
-            $fullImagePath = public_path('uploads/image/' . $imagePath);
+            $fullImagePath = 'uploads/image/' . $imagePath;
 
-            if (File::exists($fullImagePath)) {
-                File::delete($fullImagePath);
+            if (Storage::disk('public')->exists($fullImagePath)) {
+                Storage::disk('public')->delete($fullImagePath);
             }
         }
         // dd($imagePath);
@@ -273,10 +274,10 @@ class PostsController extends Controller
     {
         foreach ($imagePathsInContent as $imagePath) {
             // Xây dựng đường dẫn đầy đủ của hình ảnh
-            $fullImagePath = public_path('uploads/gallery/' . $imagePath);
+            $fullImagePath = ('uploads/gallery/' . $imagePath);
 
-            if (File::exists($fullImagePath)) {
-                File::delete($fullImagePath);
+            if (Storage::disk('public')->exists($fullImagePath)) {
+                Storage::disk('public')->delete($fullImagePath);
             }
         }
         // dd($imagePathsInContent);

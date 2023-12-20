@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-
+use Illuminate\Support\Facades\Storage;
 class CkeditorController extends Controller
 {
     //
@@ -17,9 +17,10 @@ class CkeditorController extends Controller
                 $extension = $request->file('upload')->getClientOriginalExtension();
                 $fileName = $fileName . '_' . time() . '.' . $extension;
 
-                $request->file('upload')->move(public_path('uploads/gallery'), $fileName);
+                // Lưu tập tin vào thư mục storage
+                $request->file('upload')->storeAs('uploads/gallery', $fileName, 'public');
 
-                $url = asset('uploads/gallery/' . $fileName);
+                $url = Storage::url('uploads/gallery/' . $fileName);
 
                 return response()->json(['fileName' => $fileName, 'uploaded' => 1, 'url' => $url]);
             }
@@ -37,15 +38,10 @@ class CkeditorController extends Controller
     {
         try {
             $imagesToDelete = $request->input('imagesToDelete');
-            $galleryPath = public_path('uploads/gallery');
-
+            
             foreach ($imagesToDelete as $image) {
-                $imagePath = $galleryPath . '/' . $image;
-
-                // Kiểm tra xem tập tin có tồn tại trước khi thử xóa
-                if (File::exists($imagePath)) {
-                    File::delete($imagePath);
-                }
+                // Xóa tệp tin khỏi thư mục storage
+                Storage::disk('public')->delete('uploads/gallery/' . $image);
             }
 
             return response()->json(['message' => 'Xóa ảnh thành công']);

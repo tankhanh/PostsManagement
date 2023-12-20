@@ -104,12 +104,12 @@ function ChangeToSlug() {
                 <div class="mb-3">
                     <label>Image Preview</label>
                     <div class="avatar-preview" style="text-align:center">
-                        @if(!empty($posts->image))
+                        @if (!empty($posts->image))
                         <img style="width:500px" id="profilePicPreview" class="img-fluid img-circle"
-                            src="{{ asset('uploads/image/' . $posts->image)}}" alt="Image">
+                            src="{{ Storage::url('uploads/image/' . $posts->image) }}" alt="Image">
                         @else
                         <img style="width:500px" id="profilePicPreview" class="img-fluid img-circle"
-                            src="{{ asset('uploads/image/default-image.png')}}" alt="Default Image">
+                            src="{{ asset('uploads/image/default-image.png') }}" alt="Default Image">
                         @endif
                     </div>
                 </div>

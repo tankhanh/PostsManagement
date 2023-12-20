@@ -118,8 +118,8 @@ function updateDeleteAllBtn() {
                                             @if($post->image == null)
                                             N/A
                                             @else
-                                            <img src="{{ asset('uploads/image/'.$post->image)}}" alt="Image Current"
-                                                width="50px" height="50px">
+                                            <img src="{{ Storage::url('uploads/image/'.$post->image)}}"
+                                                alt="Image Current" width="50px" height="50px">
                                             @endif
                                         </td>
                                         <!-- <td>{!! $post->excerpt !!}</td>

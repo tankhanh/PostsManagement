@@ -17,7 +17,7 @@
                     @if($post->image == null)
                     N/A
                     @else
-                    <img src="{{ asset('uploads/image/'.$post->image)}}" alt="Image Current" width="200px"
+                    <img src="{{ Storage::url('uploads/image/'.$post->image)}}" alt="Image Current" width="200px"
                         height="100px">
                     @endif
                     <p class="text-muted">{!! $post->excerpt !!}</p>
