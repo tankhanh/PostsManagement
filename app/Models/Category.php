@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Posts extends Model
+class Category extends Model
 {
     use HasFactory;
     /**
@@ -14,16 +14,15 @@ class Posts extends Model
      *
      * @var string
      */
-    protected $table = 'posts';
-
-    /**
+    protected $table = 'categories';
+     /**
      * The attributes that aren't mass assignable.
      *
      * @var array
      */
     protected $guarded = [];
-    public function category(): BelongsTo
+    public function posts(): HasMany
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->hasMany(Posts::class, 'category_id');
     }
 }

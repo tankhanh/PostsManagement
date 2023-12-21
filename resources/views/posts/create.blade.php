@@ -1,5 +1,5 @@
 @extends('master')
-@section('create')
+@section('posts.create')
 @section('module', 'Create Post')
 <style>
 .btn-list {
@@ -67,8 +67,9 @@ function ChangeToSlug() {
                 <div class="form-selectgroup-boxes row mb-3">
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label>Featured</label>
+                            <label class="form-label">Featured</label>
                             <select class="form-control" name="is_featured">
+                                <option value="0" {{ old('is_featured')==0 ? 'selected' : '' }}>--- Root ---</option>
                                 <option value="1" {{ old('is_featured')==1 ? 'selected' : '' }}>Featured</option>
                                 <option value="2" {{ old('is_featured')==2 ? 'selected' : '' }}>Default</option>
                             </select>
@@ -76,8 +77,9 @@ function ChangeToSlug() {
                     </div>
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label>Status</label>
+                            <label class="form-label">Status</label>
                             <select class="form-control" name="status">
+                                <option value="0" {{ old('status')==0 ? 'selected' : '' }}>--- Root ---</option>
                                 <option value="1" {{ old('status')==1 ? 'selected' : '' }}>Show</option>
                                 <option value="2" {{ old('status')==2 ? 'selected' : '' }}>Hidden</option>
                             </select>
@@ -93,7 +95,7 @@ function ChangeToSlug() {
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label>Image Preview</label>
+                    <label class="form-label">Image Preview</label>
                     <div class="avatar-preview" style="text-align:center">
                         <img style="width:500px" id="profilePicPreview" class="img-fluid img-circle"
                             src="{{ asset('uploads/image/default-image.png')}}" alt="Image">
@@ -107,10 +109,26 @@ function ChangeToSlug() {
                     <label class="form-label">Content</label>
                     <textarea id="Content" class="form-control" name="content"></textarea>
                 </div>
-                <div class="col-lg-6">
-                    <div class="mb-3">
-                        <label class="form-label">Posted At</label>
-                        <input type="date" class="form-control" name="posted_at">
+                <div class="form-selectgroup-boxes row mb-3">
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label">Posted At</label>
+                            <input type="date" class="form-control" name="posted_at">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-control" name="category_id">
+                                <option value="0" {{ old('category_id')==0 ? 'selected' : '' }}> --- Root --- </option>
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id}}"
+                                    {{ old('category_id')==$category->id ? 'selected' : ''}}>
+                                    {{$category->name}}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

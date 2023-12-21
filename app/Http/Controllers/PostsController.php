@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Post\StoreRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Models\Posts;
+use App\Models\Category;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Sunra\PhpSimple\HtmlDomParser;
@@ -36,7 +37,8 @@ class PostsController extends Controller
      */
     public function create()
     {
-        return response()->view('posts.create');
+        $categories = Category::get();
+        return response()->view('posts.create',compact('categories'));
     }
 
     /**
@@ -57,7 +59,20 @@ class PostsController extends Controller
             $post->excerpt = $request->excerpt;
             $post->content = $request->content;
             $post->posted_at = $request->posted_at;
+            $post->category_id = $request->category_id;
 
+            if ($post->category_id == 0){
+                return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+            }
+
+            if ($post->status == 0)
+            {
+                return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+            }
+            if ($post->is_featured == 0)
+            {
+                return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+            }
             $file = $request->image;
 
             if (!empty($file)) {
@@ -122,7 +137,8 @@ class PostsController extends Controller
     public function edit($id)
     {
         $posts = Posts::findOrFail($id);
-        return response()->view('posts.edit', compact('id', 'posts'));
+        $categories = Category::get();
+        return response()->view('posts.edit', compact('id', 'posts','categories'));
     }
 
 
@@ -143,6 +159,27 @@ class PostsController extends Controller
         $post->excerpt = $request->excerpt;
         $post->content = $request->content;
         $post->posted_at = $request->posted_at;
+        $post->category_id = $request->category_id;
+
+        if ($post->category_id == 0){
+            return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+        }
+
+        if ($post->status == 0)
+        {
+            return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+        }
+        if ($post->is_featured == 0)
+        {
+            return redirect()->back()->withInput()->with('error', 'Invalid category selected');
+        }
+
+        if($post->category_id == 0)
+        {
+            $request->validate([
+                'category_id' => 'required',
+            ]);
+        }
 
         // Kiểm tra xem giá trị mới của slug có khác với giá trị hiện tại hay không
         if ($request->slug != $post->slug) {
@@ -281,5 +318,21 @@ class PostsController extends Controller
             }
         }
         // dd($imagePathsInContent);
+    }
+    public function updatePostStatus(Request $request)
+    {
+        if ($request->has('statusData')) {
+            $statusData = json_decode($request->input('statusData'), true);
+
+            foreach ($statusData as $data) {
+                $post = Posts::findOrFail($data['id']);
+                $post->status = $data['status'];
+                $post->save();
+            }
+
+            return redirect()->route('posts.index')->with('success', 'Cập nhật trạng thái thành công');
+        } else {
+            return redirect()->route('posts.index')->with('error', 'Không có dữ liệu trạng thái được cung cấp');
+        }
     }
 }

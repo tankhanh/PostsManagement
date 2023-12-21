@@ -1,5 +1,5 @@
 @extends('master')
-@section('detail')
+@section('posts.detail')
 @section('module', 'Detail Post')
 <style>
 .btn-list {
@@ -40,7 +40,6 @@
                     <a href="{{ route('posts.edit', ['id' => $post->id]) }}" class="btn btn-primary">Edit</a>
                     <!-- Back button -->
                     <a href="{{ route('posts.index') }}" class="btn btn-secondary">Back</a>
-
                 </div>
             </div>
         </div>

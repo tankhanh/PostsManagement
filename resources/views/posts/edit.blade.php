@@ -1,5 +1,5 @@
 @extends('master')
-@section('edit')
+@section('posts.edit')
 @section('module', 'Edit Post')
 <style>
 .btn-list {
@@ -123,11 +123,28 @@ function ChangeToSlug() {
                     <textarea id="Content" type="text" class="form-control"
                         name="content">{{ old('content', $posts->content) }}</textarea>
                 </div>
-                <div class="col-lg-6">
-                    <div class="mb-3">
-                        <label class="form-label">Posted At</label>
-                        <input type="date" class="form-control" name="posted_at"
-                            value="{{ old('posted_at', date('Y-m-d', strtotime($posts->posted_at))) }}">
+                <div class="form-selectgroup-boxes row mb-3">
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label">Posted At</label>
+                            <input type="date" class="form-control" name="posted_at"
+                                value="{{ old('posted_at', date('Y-m-d', strtotime($posts->posted_at))) }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-control" name="category_id">
+                                <option value="0" {{ old('category_id', $posts->category_id) == 0 ? 'selected' : ''}}>
+                                    --- Root --- </option>
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id}}"
+                                    {{ old('category_id', $posts->category_id) == $category->id ? 'selected' : ''}}>
+                                    {{$category->name}}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

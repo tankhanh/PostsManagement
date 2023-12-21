@@ -82,24 +82,20 @@
                             </a>
                         </div>
                     </div>
-                    <div class="nav-item dropdown">
+                    <!-- <div class="nav-item dropdown">
                         <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown"
                             aria-label="Open user menu">
                             <span class="avatar avatar-sm"
                                 style="background-image: url(../../static/avatars/000m.jpg)"></span>
                             <div class="d-none d-xl-block ps-2">
-                                <div>Paweł Kuna</div>
-                                <div class="mt-1 small text-muted">UI Designer</div>
+                                <div>{{Auth::user()->email}} </div>
+                                <div class="mt-1 small text-muted">log out</div>
                             </div>
                         </a>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <a href="#" class="dropdown-item">Status</a>
-                            <a href="./profile.html" class="dropdown-item">Profile</a>
-                            <a href="#" class="dropdown-item">Feedback</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="./settings.html" class="dropdown-item">Settings</a>
-                            <a href="./sign-in.html" class="dropdown-item">Logout</a>
-                        </div>
+                    </div> -->
+                    <div class="d-none d-xl-block ps-2">
+                        <div>{{Auth::user()->email}} </div>
+                        <a href="{{route('logout')}}" class="mt-1 small text-muted">log out</a>
                     </div>
                 </div>
             </div>
@@ -109,22 +105,16 @@
                 <div class="navbar">
                     <div class="container-xl">
                         <ul class="navbar-nav">
-                            <li class="nav-item active">
+                            <li class="nav-item">
                                 <a class="nav-link" href="/posts">
-                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                        <!-- Download SVG icon from http://tabler-icons.io/i/home -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
-                                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                            <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
-                                            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
-                                            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
-                                        </svg>
-                                    </span>
-                                    <span class="nav-link-title">
-                                        Home
-                                    </span>
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block"></span>
+                                    <span class="nav-link-title">Home</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/categories">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block"></span>
+                                    <span class="nav-link-title">Category</span>
                                 </a>
                             </li>
                         </ul>
@@ -143,34 +133,6 @@
                             </h2>
                         </div>
                         <!-- Page title actions -->
-                        <div class="col-auto ms-auto d-print-none">
-                            <div class="btn-list">
-                                <a href="{{ route('posts.create') }}" class="btn btn-primary d-none d-sm-inline-block"
-                                    data-bs-toggle="modal" data-bs-target="#modal-report">
-                                    <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M12 5l0 14" />
-                                        <path d="M5 12l14 0" />
-                                    </svg>
-                                    Create new post
-                                </a>
-                                <a href="{{ route('posts.create') }}" class="btn btn-primary d-sm-none btn-icon"
-                                    data-bs-toggle="modal" data-bs-target="#modal-report"
-                                    aria-label="Create new report">
-                                    <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M12 5l0 14" />
-                                        <path d="M5 12l14 0" />
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -223,10 +185,15 @@
             });
             </script>
             @endif
-            @yield('index')
-            @yield('create')
-            @yield('edit')
-            @yield('detail')
+            @yield('posts.index')
+            @yield('posts.create')
+            @yield('posts.edit')
+            @yield('posts.detail')
+            @yield('login')
+            @yield('categories.index')
+            @yield('categories.create')
+            @yield('categories.edit')
+            @yield('categories.detail')
         </div>
         <footer class="footer footer-transparent d-print-none">
             <div class="container-xl">

@@ -30,7 +30,8 @@ class StoreRequest extends FormRequest
             'excerpt' => 'required|max:255',
             'image' => 'required|mimes:jpeg,png,jpg,svg|max:2048',
             'content' => 'required',
-            'posted_at' => 'required|date'
+            'posted_at' => 'required|date',
+            'category_id' => 'required',
         ];
     }
 
