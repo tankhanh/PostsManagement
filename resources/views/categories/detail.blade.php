@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('categories.detail')
 @section('module', 'Detail Category')
 <style>

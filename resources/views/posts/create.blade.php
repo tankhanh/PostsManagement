@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('posts.create')
 @section('module', 'Create Post')
 <style>

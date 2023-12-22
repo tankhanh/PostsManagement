@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('posts.edit')
 @section('module', 'Edit Post')
 <style>

@@ -68,6 +68,14 @@
                     });
                     </script>
                     <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" placeholder="Enter first name" name="firstname">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" placeholder="Enter last name" name="lastname">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Email address</label>
                         <input type="email" class="form-control" placeholder="Enter email" name="email">
                     </div>

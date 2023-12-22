@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('posts.index')
 @section('module', 'Dashboard')
 <!-- Page body -->

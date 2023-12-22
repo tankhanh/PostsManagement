@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Post\StoreRequest;
 use App\Http\Requests\Post\UpdateRequest;
+use App\Models\Account;
 use App\Models\Posts;
 use App\Models\Category;
 use Illuminate\Support\Facades\File;
@@ -38,6 +39,7 @@ class PostsController extends Controller
     public function create()
     {
         $categories = Category::get();
+        $this->authorize('createPost', Posts::class);
         return response()->view('posts.create',compact('categories'));
     }
 
@@ -138,6 +140,10 @@ class PostsController extends Controller
     {
         $posts = Posts::findOrFail($id);
         $categories = Category::get();
+
+        // Kiểm tra quyền truy cập sử dụng policy
+        $this->authorize('editPost', $posts);
+        
         return response()->view('posts.edit', compact('id', 'posts','categories'));
     }
 
@@ -152,6 +158,8 @@ class PostsController extends Controller
     public function update(UpdateRequest $request, $id)
     {
         $post = Posts::findOrFail($id);
+        // Kiểm tra quyền truy cập sử dụng policy
+        $this->authorize('update-post', $post);
 
         $post->title = $request->title;
         $post->is_featured = $request->is_featured;
@@ -239,6 +247,9 @@ class PostsController extends Controller
 
     public function deleteMultiple(Request $request)
     {
+        // Kiểm tra quyền truy cập sử dụng policy
+        $this->authorize('deleteMultiple', Posts::class);
+        
         $selectedPosts = $request->input('selectedPosts', []);
 
         if (!is_array($selectedPosts)) {
@@ -258,6 +269,8 @@ class PostsController extends Controller
                 $contentPaths = array_merge($contentPaths, $this->getImagePathsFromContent($post->content));
                 // dd($contentPaths);
             }
+
+            
 
             // Xóa bài viết
             Posts::whereIn('id', $selectedPosts)->delete();
@@ -326,6 +339,10 @@ class PostsController extends Controller
 
             foreach ($statusData as $data) {
                 $post = Posts::findOrFail($data['id']);
+
+                // Kiểm tra quyền truy cập sử dụng policy
+                $this->authorize('updateStatus', $post);
+            
                 $post->status = $data['status'];
                 $post->save();
             }

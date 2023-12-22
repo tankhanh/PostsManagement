@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('posts.detail')
 @section('module', 'Detail Post')
 <style>

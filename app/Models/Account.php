@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Account extends Authenticatable
 {
@@ -40,4 +41,8 @@ class Account extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    public function profile(): BelongsTo
+    {
+        return $this->belongsTo(Profile::class);
+    }
 }

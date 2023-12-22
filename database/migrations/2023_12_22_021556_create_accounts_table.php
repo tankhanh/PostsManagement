@@ -17,6 +17,9 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->tinyInteger('role')->default(2)->comment('1: Admin - 2: Member');
+            $table->unsignedBigInteger('profile_id')->default(0);
+            $table->foreign('profile_id')->references('id')->on('profiles')->onDelete('no action');
             $table->rememberToken();
             $table->timestamps();
         });

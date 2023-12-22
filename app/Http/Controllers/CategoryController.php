@@ -35,6 +35,7 @@ class CategoryController extends Controller
     {
         //
         $categories = Category::all(); // hoặc bất kỳ logic lấy categories nào khác
+        $this->authorize('createCategory', Category::class);
         return response()->view('categories.create', compact('categories'));
     }
 
@@ -83,6 +84,7 @@ class CategoryController extends Controller
     {
         $categories = Category::findOrFail($id);
         $allCategories = Category::all();
+        $this->authorize('editCategory', $categories);
         return response()->view('categories.edit', compact('id', 'categories', 'allCategories'));
     }
     /**
@@ -129,6 +131,7 @@ class CategoryController extends Controller
      */
     public function deleteMultiple(Request $request)
     {
+        $this->authorize('deleteMultiple', Category::class);
         $categoryIds = $request->input('selectedPosts');
 
         // Lấy danh sách category có posts
@@ -161,6 +164,9 @@ class CategoryController extends Controller
 
             foreach ($statusData as $data) {
                 $category = Category::findOrFail($data['id']);
+
+                $this->authorize('updateStatus', $category);
+
                 $category->status = $data['status'];
                 $category->save();
             }

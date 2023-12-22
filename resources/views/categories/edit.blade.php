@@ -1,4 +1,4 @@
-@extends('master')
+@extends('layouts.app')
 @section('categories.edit')
 @section('module', 'Edit Category')
 <style>
