@@ -57,27 +57,25 @@
     <script src="{{ asset('dist/js/demo-theme.min.js') }}"></script>
     <div class="page">
         <!-- navbar.blade.php -->
-        @include('components.navbar')
+        <x-navbar></x-navbar>
         <div class="page-wrapper">
             <!-- Page header -->
             <!-- page-header.blade.php -->
-            @include('components.page-header')
-
+            <x-alerts> </x-alerts>
             <!-- custom-alerts.blade.php -->
-            @include('components.custom-alerts')
             @yield('posts.index')
             @yield('posts.create')
             @yield('posts.edit')
             @yield('posts.detail')
-            @yield('login')
+            <!-- @yield('login')
             @yield('categories.index')
             @yield('categories.create')
             @yield('categories.edit')
             @yield('categories.detail')
-            @yield('editprofile')
+            @yield('editprofile') -->
         </div>
         <!-- footer.blade.php -->
-        @include('components.footer')
+        <x-footer> </x-footer>
     </div>
 </body>
 <!-- Thêm mã JavaScript -->
