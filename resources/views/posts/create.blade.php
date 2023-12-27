@@ -1,12 +1,22 @@
 @extends('layouts.app')
+@section('title', 'Post Create')
 @section('posts.create')
 @section('module', 'Create Post')
+<!-- Parsley CSS -->
+<link rel="stylesheet" href="https://parsleyjs.org/src/parsley.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Parsley JS -->
+<script src="https://parsleyjs.org/dist/parsley.min.js"></script>
 <style>
 .btn-list {
     visibility: hidden;
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script src="{{ asset('js/ckfinder.js') }}"></script>
 <script language="javascript">
 function ChangeToSlug() {
     var title, slug;
@@ -42,7 +52,7 @@ function ChangeToSlug() {
     document.getElementById('slug').value = slug;
 }
 </script>
-<form method="post" action="{{ route('posts.store') }}" enctype="multipart/form-data">
+<form method="post" action="{{ route('posts.store') }}" enctype="multipart/form-data" data-parsley-validate>
     @csrf
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -54,7 +64,7 @@ function ChangeToSlug() {
                         <div class="mb-3">
                             <label class="form-label">Title</label>
                             <input id="title" type="text" class="form-control" name="title" placeholder="Enter title"
-                                onkeyup="ChangeToSlug();" value="">
+                                onkeyup="ChangeToSlug();" value="" data-parsley-required="true">
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -68,7 +78,7 @@ function ChangeToSlug() {
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Featured</label>
-                            <select class="form-control" name="is_featured">
+                            <select class="form-control" name="is_featured" id="trangthaichung">
                                 <option value="0" {{ old('is_featured')==0 ? 'selected' : '' }}>--- Root ---</option>
                                 <option value="1" {{ old('is_featured')==1 ? 'selected' : '' }}>Featured</option>
                                 <option value="2" {{ old('is_featured')==2 ? 'selected' : '' }}>Default</option>
@@ -78,7 +88,7 @@ function ChangeToSlug() {
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Status</label>
-                            <select class="form-control" name="status">
+                            <select class="form-control" name="status" id="trangthaichung">
                                 <option value="0" {{ old('status')==0 ? 'selected' : '' }}>--- Root ---</option>
                                 <option value="1" {{ old('status')==1 ? 'selected' : '' }}>Show</option>
                                 <option value="2" {{ old('status')==2 ? 'selected' : '' }}>Hidden</option>
@@ -89,7 +99,8 @@ function ChangeToSlug() {
                 <div class="mb-3">
                     <label for="profilePicInput">Image</label>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="profilePicInput" name="image">
+                        <input type="file" class="custom-file-input" id="profilePicInput" name="image"
+                            data-parsley-required="true">
                         <label class="custom-file-label" for="profilePicInput">
                         </label>
                     </div>
@@ -103,23 +114,23 @@ function ChangeToSlug() {
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Excerpt</label>
-                    <textarea id="Excerpt" class="form-control" name="excerpt"></textarea>
+                    <textarea id="Excerpt" class="form-control" name="excerpt" data-parsley-required="true"></textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Content</label>
-                    <textarea id="Content" class="form-control" name="content"></textarea>
+                    <textarea id="Content" class="form-control" name="content" data-parsley-required="true"></textarea>
                 </div>
                 <div class="form-selectgroup-boxes row mb-3">
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Posted At</label>
-                            <input type="date" class="form-control" name="posted_at">
+                            <input type="date" class="form-control" name="posted_at" data-parsley-required="true">
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Category</label>
-                            <select class="form-control" name="category_id">
+                            <select class="form-control" name="category_id" id="trangthaichung">
                                 <option value="0" {{ old('category_id')==0 ? 'selected' : '' }}> --- Root --- </option>
                                 @foreach($categories as $category)
                                 <option value="{{ $category->id}}"
@@ -150,6 +161,8 @@ function ChangeToSlug() {
             </div>
         </div>
 </form>
+<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+<script src="{{ asset('js/ckfinder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const profilePicInput = document.getElementById('profilePicInput');
@@ -169,61 +182,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-    const contentTextarea = document.querySelector('#Content');
-    const uploadedImages = [];
-
-    ClassicEditor
-        .create(contentTextarea, {
-            ckfinder: {
-                uploadUrl: "{{ route('ckeditor.upload', ['_token' => csrf_token()]) }}",
-            },
-        })
-        .then(editor => {
-            editor.model.document.on('change:data', () => {
-                // Lấy danh sách các ảnh đã upload
-                const data = editor.getData();
-                const regex = /<img[^>]+src="([^">]+)"/g;
-                let match;
-                const imagesInGallery = [];
-
-                while ((match = regex.exec(data)) !== null) {
-                    imagesInGallery.push(match[1]);
-                }
-
-                // So sánh với danh sách các ảnh đã upload trước đó
-                const deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
-
-                // Xóa các ảnh không còn tồn tại trong nội dung
-                deleteUnusedImages(deletedImages);
-
-                // Cập nhật danh sách các ảnh đã upload
-                uploadedImages.length = 0;
-                Array.prototype.push.apply(uploadedImages, imagesInGallery);
-            });
-        })
-        .catch(error => {
-            console.error(error);
-        });
-
-    function deleteUnusedImages(imagesInGallery) {
-        if (imagesInGallery.length > 0) {
-            axios.post("{{ route('ckeditor.deleteImages') }}", {
-                    imagesToDelete: imagesInGallery
-                })
-                .then(response => {
-                    console.log(response.data);
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        }
-    }
-
 });
+
+const contentTextarea = document.querySelector('#Content');
+const uploadedImages = [];
+
+ClassicEditor
+    .create(contentTextarea, {
+        ckfinder: {
+            uploadUrl: "{{ route('ckeditor.upload', ['_token' => csrf_token()]) }}",
+        },
+    })
+    .then(editor => {
+        editor.model.document.on('change:data', () => {
+            // Lấy danh sách các ảnh đã upload
+            const data = editor.getData();
+            const regex = /<img[^>]+src="([^">]+)"/g;
+            let match;
+            const imagesInGallery = [];
+
+            while ((match = regex.exec(data)) !== null) {
+                imagesInGallery.push(match[1]);
+            }
+
+            // So sánh với danh sách các ảnh đã upload trước đó
+            const deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
+
+            // Xóa các ảnh không còn tồn tại trong nội dung
+            deleteUnusedImages(deletedImages);
+
+            // Cập nhật danh sách các ảnh đã upload
+            uploadedImages.length = 0;
+            Array.prototype.push.apply(uploadedImages, imagesInGallery);
+        });
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+function deleteUnusedImages(imagesInGallery) {
+    if (imagesInGallery.length > 0) {
+        axios.post("{{ route('ckeditor.deleteImages') }}", {
+                imagesToDelete: imagesInGallery
+            })
+            .then(response => {
+                console.log(response.data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+}
 </script>
-<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
-<script src="{{ asset('js/ckfinder.js') }}"></script>
 <script>
 ClassicEditor
     .create(document.querySelector('#Excerpt'), {
@@ -238,21 +248,31 @@ ClassicEditor
                 'numberedList',
                 '|',
                 'blockQuote'
-                // Bạn có thể thêm hoặc xóa các mục khác tùy ý ở đây
             ]
         },
     })
     .catch(error => {
         console.error(error);
     });
-// ClassicEditor
-//     .create(document.querySelector('#Content'), {
-//         ckfinder: {
-//             uploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token()])}}",
-//         }
-//     })
-//     .catch(error => {
-//         console.error(error);
-//     });
+</script>
+<script>
+$(document).ready(function() {
+    // Khởi tạo Parsley cho toàn bộ biểu mẫu
+    var form = $('form[data-parsley-validate]');
+    form.parsley();
+
+    // Kiểm tra tính hợp lệ của tất cả các trường biểu mẫu khi trang tải
+    // form.parsley().validate();
+});
+$('form[data-parsley-validate]').submit(function(e) {
+    // Kiểm tra giá trị của trường "status"
+    var statusValue = $('#trangthaichung').val();
+
+    // Nếu giá trị là 0, hiển thị thông báo và ngăn chặn form được submit
+    if (statusValue == 0) {
+        alert('Please select a status other than --- Root ---');
+        e.preventDefault(); // Ngăn chặn form được submit
+    }
+});
 </script>
 @endsection

@@ -1,6 +1,17 @@
 @extends('layouts.app')
+@section('title', 'Post Update')
 @section('posts.edit')
 @section('module', 'Edit Post')
+<!-- Parsley CSS -->
+<link rel="stylesheet" href="https://parsleyjs.org/src/parsley.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Parsley JS -->
+<script src="https://parsleyjs.org/dist/parsley.min.js"></script>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+<script src="{{ asset('js/ckfinder.js') }}"></script>
 <style>
 .btn-list {
     visibility: hidden;
@@ -42,7 +53,8 @@ function ChangeToSlug() {
     document.getElementById('slug').value = slug;
 }
 </script>
-<form method="post" action="{{ route('posts.update',['id' => $id]) }}" enctype="multipart/form-data">
+<form method="post" action="{{ route('posts.update',['id' => $id]) }}" enctype="multipart/form-data"
+    data-parsley-validate>
     @csrf
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -54,7 +66,8 @@ function ChangeToSlug() {
                         <div class="mb-3">
                             <label class="form-label">Title</label>
                             <input id="title" type="text" class="form-control" name="title" placeholder="Enter title"
-                                onkeyup="ChangeToSlug();" value="{{ old('title', $posts->title) }}">
+                                onkeyup="ChangeToSlug();" value="{{ old('title', $posts->title) }}"
+                                data-parsley-required="true">
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -69,8 +82,8 @@ function ChangeToSlug() {
                 <div class="form-selectgroup-boxes row mb-3">
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label>Featured</label>
-                            <select class="form-control" name="is_featured">
+                            <label class="form-label">Featured</label>
+                            <select class="form-control" name="is_featured" id="trangthaichung">
                                 <option value="1" {{ old('is_featured', $posts->is_featured) == 1 ? 'selected' : ''}}>
                                     Featured
                                 </option>
@@ -82,8 +95,8 @@ function ChangeToSlug() {
                     </div>
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label>Status</label>
-                            <select class="form-control" name="status">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" name="status" id="trangthaichung">
                                 <option value="1" {{ old('status', $posts->status) == 1 ? 'selected' : ''}}>Show
                                 </option>
                                 <option value="2" {{ old('status', $posts->status) == 2 ? 'selected' : ''}}>Hidden
@@ -93,16 +106,16 @@ function ChangeToSlug() {
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="profilePicInput">Image</label>
+                    <label class="form-label" for="profilePicInput">Image</label>
                     <div class="custom-file">
                         <input type="file" class="custom-file-input" id="profilePicInput" name="image">
-                        <label class="custom-file-label" for="profilePicInput">
-
+                        <label class="custom-file-label" for="profilePicInput" data-parsley-required="true">
+                            {{ $posts->image ?? 'Choose file' }}
                         </label>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label>Image Preview</label>
+                    <label class="form-label">Image Preview</label>
                     <div class="avatar-preview" style="text-align:center">
                         @if (!empty($posts->image))
                         <img style="width:500px" id="profilePicPreview" class="img-fluid img-circle"
@@ -115,26 +128,27 @@ function ChangeToSlug() {
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Excerpt</label>
-                    <textarea id="Excerpt" type="text" class="form-control" name="excerpt">
+                    <textarea id="Excerpt" type="text" class="form-control" name="excerpt" data-parsley-required="true">
                         {{ old('excerpt', $posts->excerpt) }}</textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Content</label>
-                    <textarea id="Content" type="text" class="form-control"
-                        name="content">{{ old('content', $posts->content) }}</textarea>
+                    <textarea id="Content" type="text" class="form-control" name="content"
+                        data-parsley-required="true">{{ old('content', $posts->content) }}</textarea>
                 </div>
                 <div class="form-selectgroup-boxes row mb-3">
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Posted At</label>
                             <input type="date" class="form-control" name="posted_at"
-                                value="{{ old('posted_at', date('Y-m-d', strtotime($posts->posted_at))) }}">
+                                value="{{ old('posted_at', date('Y-m-d', strtotime($posts->posted_at))) }}"
+                                data-parsley-required="true">
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Category</label>
-                            <select class="form-control" name="category_id">
+                            <select class="form-control" name="category_id" id="trangthaichung">
                                 <option value="0" {{ old('category_id', $posts->category_id) == 0 ? 'selected' : ''}}>
                                     --- Root --- </option>
                                 @foreach($categories as $category)
@@ -166,6 +180,27 @@ function ChangeToSlug() {
             </div>
         </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profilePicInput = document.getElementById('profilePicInput');
+    const profilePicPreview = document.getElementById('profilePicPreview');
+    const customFileLabel = document.querySelector('.custom-file-label');
+
+    profilePicInput.addEventListener('change', function() {
+        if (profilePicInput.files && profilePicInput.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                profilePicPreview.src = e.target.result;
+                customFileLabel.innerText = profilePicInput.files[0].name;
+            };
+
+            reader.readAsDataURL(profilePicInput.files[0]);
+        }
+    });
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const profilePicInput = document.getElementById('profilePicInput');
@@ -185,87 +220,85 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+});
 
-    const contentTextarea = document.querySelector('#Content');
-    let uploadedImages = [];
-    let deletedImages = [];
-    let match;
-    let imagesInGallery = [];
-    ClassicEditor
-        .create(contentTextarea, {
-            ckfinder: {
-                uploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token()])}}",
-            },
-        })
-        .then(editor => {
-            editor.model.document.on('change:data', () => {
-                // Lấy danh sách các ảnh đã upload
-                console.log("Editor data has changed");
-                const data = editor.getData();
-                const regex = /<img[^>]+src="([^">]+)"/g;
+const contentTextarea = document.querySelector('#Content');
+let uploadedImages = [];
+let deletedImages = [];
+let match;
+let imagesInGallery = [];
+ClassicEditor
+    .create(contentTextarea, {
+        ckfinder: {
+            uploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token()])}}",
+        },
+    })
+    .then(editor => {
+        editor.model.document.on('change:data', () => {
+            // Lấy danh sách các ảnh đã upload
+            console.log("Editor data has changed");
+            const data = editor.getData();
+            const regex = /<img[^>]+src="([^">]+)"/g;
 
-                while ((match = regex.exec(data)) !== null) {
-                    imagesInGallery.push(match[1]);
-                }
+            while ((match = regex.exec(data)) !== null) {
+                imagesInGallery.push(match[1]);
+            }
 
-                // So sánh với danh sách các ảnh đã upload trước đó
-                deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
+            // So sánh với danh sách các ảnh đã upload trước đó
+            deletedImages = uploadedImages.filter(img => !imagesInGallery.includes(img));
 
-                // Xóa các ảnh không còn tồn tại trong nội dung
-                deleteUnusedImages(deletedImages, data);
+            // Xóa các ảnh không còn tồn tại trong nội dung
+            deleteUnusedImages(deletedImages, data);
 
-                // Cập nhật danh sách các ảnh đã upload
-                uploadedImages.length = 0;
-                Array.prototype.push.apply(uploadedImages, imagesInGallery);
-            });
-        })
-        .catch(error => {
-            console.error(error);
+            // Cập nhật danh sách các ảnh đã upload
+            uploadedImages.length = 0;
+            Array.prototype.push.apply(uploadedImages, imagesInGallery);
+        });
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+function deleteUnusedImages(imagesInGallery, data) {
+    console.log("Server Response - imagesInGallery: ", imagesInGallery);
+    console.log("Server Response - data: ", data);
+    if (imagesInGallery.length > 0) {
+        // Lấy danh sách các ảnh đã upload trước đó
+        const allUploadedImages = [...uploadedImages];
+
+        // Tìm và thêm vào danh sách các ảnh đã upload những ảnh nằm ngoài nội dung
+        allUploadedImages.forEach(img => {
+            const regex = new RegExp(img, 'g');
+            const matches = (imagesInGallery.join(',') + data).match(regex);
+
+            if (!matches) {
+                imagesInGallery.push(img);
+            }
         });
 
-    function deleteUnusedImages(imagesInGallery, data) {
-        console.log("Server Response - imagesInGallery: ", imagesInGallery);
-        console.log("Server Response - data: ", data);
-        if (imagesInGallery.length > 0) {
-            // Lấy danh sách các ảnh đã upload trước đó
-            const allUploadedImages = [...uploadedImages];
+        // Hiển thị console log để kiểm tra
+        console.log("Các ảnh cần xóa: ", deletedImages);
 
-            // Tìm và thêm vào danh sách các ảnh đã upload những ảnh nằm ngoài nội dung
-            allUploadedImages.forEach(img => {
-                const regex = new RegExp(img, 'g');
-                const matches = (imagesInGallery.join(',') + data).match(regex);
+        // Gửi yêu cầu xóa ảnh đến server
+        axios.post("{{ route('ckeditor.deleteImages') }}", {
+                imagesToDelete: deletedImages
+            })
+            .then(response => {
+                console.log("Response từ server: ", response.data);
 
-                if (!matches) {
-                    imagesInGallery.push(img);
-                }
+                // Sau khi xóa thành công, cập nhật danh sách ảnh đã upload
+                uploadedImages = uploadedImages.filter(img => !deletedImages.includes(img));
+
+                // Hiển thị console log để kiểm tra
+                console.log("Danh sách ảnh trong Gallery sau khi xóa: ", uploadedImages);
+            })
+            .catch(error => {
+                console.error("Lỗi từ server: ", error);
+                console.error(error);
             });
-
-            // Hiển thị console log để kiểm tra
-            console.log("Các ảnh cần xóa: ", deletedImages);
-
-            // Gửi yêu cầu xóa ảnh đến server
-            axios.post("{{ route('ckeditor.deleteImages') }}", {
-                    imagesToDelete: deletedImages
-                })
-                .then(response => {
-                    console.log("Response từ server: ", response.data);
-
-                    // Sau khi xóa thành công, cập nhật danh sách ảnh đã upload
-                    uploadedImages = uploadedImages.filter(img => !deletedImages.includes(img));
-
-                    // Hiển thị console log để kiểm tra
-                    console.log("Danh sách ảnh trong Gallery sau khi xóa: ", uploadedImages);
-                })
-                .catch(error => {
-                    console.error("Lỗi từ server: ", error);
-                    console.error(error);
-                });
-        }
     }
-});
+}
 </script>
-<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
-<script src="{{ asset('js/ckfinder.js') }}"></script>
 <script>
 ClassicEditor
     .create(document.querySelector('#Excerpt'), {
@@ -286,5 +319,25 @@ ClassicEditor
     .catch(error => {
         console.error(error);
     });
+</script>
+<script>
+$(document).ready(function() {
+    // Khởi tạo Parsley cho toàn bộ biểu mẫu
+    var form = $('form[data-parsley-validate]');
+    form.parsley();
+
+    // Kiểm tra tính hợp lệ của tất cả các trường biểu mẫu khi trang tải
+    // form.parsley().validate();
+});
+$('form[data-parsley-validate]').submit(function(e) {
+    // Kiểm tra giá trị của trường "status"
+    var statusValue = $('#trangthaichung').val();
+
+    // Nếu giá trị là 0, hiển thị thông báo và ngăn chặn form được submit
+    if (statusValue == 0) {
+        alert('Please select a status other than --- Root ---');
+        e.preventDefault(); // Ngăn chặn form được submit
+    }
+});
 </script>
 @endsection

@@ -17,10 +17,12 @@ class CheckLogin
      */
     public function handle(Request $request, Closure $next)
     {
-        if(Auth::check())
-        {
+        if (Auth::check()) {
             return $next($request);
         }
-        return redirect()->back();
+        else
+        {
+            return redirect('auth/login')->with('error', 'You do not have access here.');
+        }
     }
 }

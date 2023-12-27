@@ -1,32 +1,24 @@
 @extends('layouts.app')
+@section('title', 'Category')
 @section('categories.index')
 @section('module', 'Dashboard')
 <!-- Page body -->
-<script>
-function confirmationDelete(module) {
-    return confirm(`Are you sure you want to delete this ${module} ?`);
-}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-function clearCheckboxes() {
-    var checkboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]');
-    var deleteAllBtn = document.getElementById('deleteAllBtn');
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
 
-    checkboxes.forEach(function(checkbox) {
-        checkbox.checked = false;
-    });
-    deleteAllBtn.classList.add('d-none');
-}
+<!-- DataTables JS -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
 
-function updateDeleteAllBtn() {
-    var checkboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]');
-    var deleteAllBtn = document.getElementById('deleteAllBtn');
-    var checkedCheckboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]:checked');
+<!-- jQuery Toast Plugin CSS -->
+<link rel="stylesheet" type="text/css"
+    href="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.css">
 
-    deleteAllBtn.textContent = `Delete ${checkedCheckboxes.length} Item${checkedCheckboxes.length > 1 ? 's' : ''}`;
-
-    deleteAllBtn.classList.toggle('d-none', checkedCheckboxes.length === 0);
-}
-</script>
+<!-- jQuery Toast Plugin JS -->
+<script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.js"></script>
 <div class="page-body">
     <div class="container-xl">
         <div class="row row-deck row-cards">
@@ -52,7 +44,6 @@ function updateDeleteAllBtn() {
                                 <a href="{{ route('categories.create') }}" class="btn btn-primary d-sm-none btn-icon"
                                     data-bs-toggle="modal" data-bs-target="#modal-report"
                                     aria-label="Create new report">
-                                    <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
                                         stroke-linecap="round" stroke-linejoin="round">
@@ -64,198 +55,120 @@ function updateDeleteAllBtn() {
                             </div>
                         </div>
                     </div>
-                    <div class="card-body border-bottom py-3">
-                        <div class="d-flex">
-                            <div class="text-muted">
-                                Show
-                                <div class="mx-2 d-inline-block">
-                                    <span class="form-control form-control-sm" size="3"
-                                        aria-label="Invoices count">{{ $entriesCount }}</span>
-                                </div>
-                                entries
-                            </div>
-                            <div class="ms-auto text-muted">
-                                Search:
-                                <div class="ms-2 d-inline-block">
-                                    <input type="text" id="searchInput" class="form-control form-control-sm"
-                                        aria-label="Search invoice">
-                                </div>
-                            </div>
-                            <div id="searchResults"></div>
-                        </div>
-                    </div>
                     <div class="table-responsive">
-                        <form method="POST" action="{{ route('categories.deleteMultiple') }}" id="deleteMultipleForm">
-                            @csrf
-                            @method('DELETE')
-                            <table class="table card-table table-vcenter text-nowrap datatable">
-                                <thead>
-                                    <tr>
-                                        <th class="w-1"><input id="checkboxAll"
-                                                class="form-check-input m-0 align-middle" type="checkbox"
-                                                aria-label="Select all invoices"></th>
-                                        <th class="w-1">ID
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm icon-thick"
-                                                width="24" height="24" viewBox="0 0 24 24" stroke-width="2"
-                                                stroke="currentColor" fill="none" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                <path d="M6 15l6 -6l6 6" />
-                                            </svg>
-                                        </th>
-                                        <th>Name</th>
-                                        <th>Slug</th>
-                                        <th>status</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($categories as $category)
-                                    <tr>
-                                        <!-- <td><input class="form-check-input m-0 align-middle" type="checkbox"
-                                                aria-label="Select invoice"></td> -->
-                                        <td>
-                                            <input name="selectedPosts[]" value="{{ $category->id }}"
-                                                class="form-check-input m-0 align-middle" type="checkbox"
-                                                aria-label="Select invoice" data-status="{{ $category->status }}"
-                                                onchange="updateDeleteAllBtn()">
-                                        </td>
-                                        <td><span class="text-muted">{{ $loop->iteration}}</span></td>
-                                        <td><a href="{{ route('categories.detail', ['id' => $category->id, 'slug' => $category->slug]) }}"
-                                                class="text-reset" tabindex="-1">{{ $category->name }}</a>
-                                        </td>
-                                        <td>{{$category->slug}}</td>
-                                        <td>
-                                            @if($category->status == 0)
-                                            N/A
-                                            @elseif($category->status == 1)
-                                            <span class="right badge bg-success">Show</span>
-                                            @else
-                                            <span class="right badge badge-danger">Hidden</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </form>
+                        <table id="myDataTable" class="table card-table table-vcenter text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="w-1">
+                                        ID
+                                    </th>
+                                    <th>Name</th>
+                                    <th>Slug</th>
+                                    <th>status</th>
+                                    <th width="105px">Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <script type="text/javascript">
+                        $(document).ready(function() {
+                            var detailRoute = "{{ route('categories.detail', ['slug' => ':slug']) }}";
+                            $('#myDataTable').DataTable({
+                                processing: true,
+                                serverSide: true,
+                                ajax: "{{ route('categories.index') }}",
+                                columns: [{
+                                        data: 'DT_RowId',
+                                        name: 'DT_RowId',
+                                    },
+                                    {
+                                        data: 'name',
+                                        name: 'name'
+                                    },
+                                    {
+                                        data: 'slug',
+                                        name: 'slug'
+                                    },
+                                    {
+                                        data: 'status',
+                                        name: 'status',
+                                        render: function(data, type, full, meta) {
+                                            return data === 1 ? 'Public' : (data === 2 ?
+                                                'Private' : 'Unknown');
+                                        }
+                                    },
+                                    {
+                                        data: 'action',
+                                        name: 'action',
+                                        orderable: false,
+                                        searchable: false,
+                                        render: function(data, type, full, meta) {
+                                            return '<a href="' + detailRoute.replace(':slug',
+                                                    full.slug) + '" class="text-reset">' +
+                                                data + '</a>' +
+                                                '<button class="btn btn-danger btn-sm delete-category" data-id="' +
+                                                full.DT_RowId +
+                                                '">Delete</button>'; // Thay đổi từ full.id thành full.DT_RowId
+                                        }
+                                    },
+                                ],
+                                "language": {
+                                    "emptyTable": "There are no categories here"
+                                },
+                            });
+                            // Xử lý sự kiện nhấp chuột vào nút "Chỉnh sửa"
+                            $('#myDataTable tbody').on('click', 'a.edit', function() {
+                                // Sử dụng DataTable để lấy dữ liệu trên hàng được chọn
+                                var data = $('#myDataTable').DataTable().row($(this).closest('tr'))
+                                    .data();
+
+                                if (data) {
+                                    // Đảm bảo rằng dữ liệu đã được lấy thành công
+                                    var editUrl = "{{ route('categories.edit', ':id') }}".replace(':id',
+                                        data.DT_RowId);
+                                    window.location.href = editUrl;
+                                } else {
+                                    console.error('Error: Unable to retrieve data for editing.');
+                                }
+                            });
+                            $('#myDataTable tbody').on('click', 'button.delete-category', function() {
+                                var categoryId = $(this).data('id');
+                                if (confirm('Are you sure you want to delete this category?')) {
+                                    $.ajax({
+                                        url: "{{ route('categories.destroy', ':id') }}".replace(
+                                            ':id', categoryId),
+                                        // Sửa đường dẫn
+                                        type: 'DELETE',
+                                        data: {
+                                            _token: '{{ csrf_token() }}',
+                                        },
+                                        success: function(response) {
+                                            $.toast({
+                                                heading: 'Success',
+                                                text: response.message,
+                                                showHideTransition: 'slide',
+                                                icon: 'success'
+                                            });
+                                            // Reload DataTable after successful deletion
+                                            $('#myDataTable').DataTable().ajax.reload();
+                                        },
+                                        error: function(xhr, status, error) {
+                                            console.error(xhr.responseText);
+                                            $.toast({
+                                                heading: 'Error',
+                                                text: 'An error occurred while deleting the category.',
+                                                showHideTransition: 'slide',
+                                                icon: 'error'
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        </script>
                     </div>
-                    <form method="POST" action="{{ route('categories.updateStatus') }}" id="updateStatusForm">
-                        @csrf
-                        @method('PUT')
-                        <button type="button" id="updateStatusBtn" class="btn btn-primary ml-auto d-none"
-                            style="width: 100%;" onclick="updateCategoryStatus()">Update Status</button>
-                    </form>
-                    <button type="button" id="deleteAllBtn" class="btn btn-danger ml-auto d-none" style="float: right;"
-                        onclick="deleteMultiple()">Delete All</button>
-                    <div class="card-footer d-flex align-items-center">
-                        <p class="m-0 text-muted">Showing <span>{{ $categories->firstItem() }}</span> to
-                            <span>{{ $categories->lastItem() }}</span> of <span>{{ $entriesCount }}</span> entries
-                        </p>
-                        {{ $categories->links() }}
-                    </div>
-                    @foreach($categories as $category)
-                    <a href="{{ route('categories.destroy', ['id' => $category->id]) }}" id="deleteAllBtn"
-                        class="btn btn-danger ml-auto d-none" style="float: right;"
-                        onclick=" return confirmationDelete('post'); clearCheckboxes();">Delete
-                        All</a>
-                    @endforeach
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-function updateDeleteAllBtn() {
-    var checkboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]');
-    var updateStatusBtn = document.getElementById('updateStatusBtn');
-
-    var checkedCheckboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]:checked');
-
-    // Nếu có ít nhất một checkbox được chọn, hiển thị nút "Update Status"
-    updateStatusBtn.classList.toggle('d-none', checkedCheckboxes.length === 0);
-}
-
-function updateCategoryStatus() {
-    var form = document.getElementById('updateStatusForm');
-    var checkedCheckboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]:checked');
-
-    if (checkedCheckboxes.length > 0) {
-        if (confirm(`Are you sure you want to update status of selected categories?`)) {
-            // Lưu trạng thái mới vào mảng để gửi đi
-            var statusData = Array.from(checkedCheckboxes).map(function(checkbox) {
-                return {
-                    id: checkbox.value,
-                    status: checkbox.dataset.status == 1 ? 2 : 1 // Đảo ngược trạng thái
-                };
-            });
-
-            // Thêm mảng statusData vào form để gửi đi
-            var statusInput = document.createElement('input');
-            statusInput.type = 'hidden';
-            statusInput.name = 'statusData';
-            statusInput.value = JSON.stringify(statusData);
-            form.appendChild(statusInput);
-
-            form.submit();
-        }
-    } else {
-        alert('Please select at least one category to update status.');
-    }
-}
-</script>
-
-<script>
-function deleteMultiple() {
-    var form = document.getElementById('deleteMultipleForm');
-    if (confirm(`Are you sure you want to delete selected posts?`)) {
-        form.submit();
-    }
-}
-document.getElementById('searchInput').addEventListener('input', function() {
-    var searchText = this.value.toLowerCase();
-
-    // Lặp qua từng hàng trong bảng để ẩn/hiện dựa trên nội dung tìm kiếm
-    var tableRows = document.querySelectorAll('.datatable tbody tr');
-    tableRows.forEach(function(row) {
-        var title = row.querySelector('td:nth-child(3)').textContent
-            .toLowerCase();
-        if (title.includes(searchText)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
-
-document.getElementById('checkboxAll').addEventListener('change', function() {
-    var checkboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]');
-    var deleteAllBtn = document.getElementById('deleteAllBtn');
-
-    checkboxes.forEach(function(checkbox) {
-        checkbox.checked = this.checked;
-    }, this);
-
-    deleteAllBtn.classList.toggle('d-none', !Array.from(checkboxes).some(checkbox => checkbox.checked));
-
-    this.indeterminate = false;
-    if (this.checked && Array.from(checkboxes).every(checkbox => checkbox.checked)) {
-        this.indeterminate = true;
-    }
-    updateDeleteAllBtn();
-});
-
-// Lắng nghe sự kiện change cho mỗi checkbox trong tbody
-document.querySelectorAll('.datatable tbody td input[type="checkbox"]').forEach(function(checkbox) {
-    checkbox.addEventListener('change', function() {
-        var checkboxes = document.querySelectorAll('.datatable tbody td input[type="checkbox"]');
-        var deleteAllBtn = document.getElementById('deleteAllBtn');
-
-        deleteAllBtn.classList.toggle('d-none', !Array.from(checkboxes).some(checkbox => checkbox
-            .checked));
-
-        updateDeleteAllBtn();
-    });
-});
-</script>
 @endsection

@@ -25,13 +25,16 @@ class CategoryPolicy
         if ($user->role == 1) {
             return true; // Admin có toàn quyền
         }
-        // Kiểm tra xem người dùng có quyền chỉnh sửa bài viết hay không
+        // Kiểm tra xem người dùng có quyền chỉnh sửa danh mục hay không
         return $user->id === $category->user_id;
     }
-
+    public function deleteCategory(Account $user, Category $category)
+    {
+        return $user->role == 1; // Chỉ admin có thể xóa nhiều danh mục
+    }
     public function deleteMultiple(Account $user)
     {
-        return $user->role == 1; // Chỉ admin có thể xóa nhiều bài viết
+        return $user->role == 1; // Chỉ admin có thể xóa nhiều danh mục
     }
     
 

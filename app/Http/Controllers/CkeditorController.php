@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+
 class CkeditorController extends Controller
 {
-    //
     public function upload(Request $request)
     {
         try {
@@ -28,12 +27,6 @@ class CkeditorController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-    // public function store(Request $request)
-    // {
-    //     dd($request->all());
-    // }
-
     public function deleteImages(Request $request)
     {
         try {

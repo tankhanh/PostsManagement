@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Category Detail')
 @section('categories.detail')
 @section('module', 'Detail Category')
 <style>

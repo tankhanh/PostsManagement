@@ -5,13 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Posts</title>
+    <title>@yield('title', 'Default Title')</title>
     <!-- CSS files -->
     <link href="{{ asset('dist/css/tabler.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('dist/css/tabler-flags.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('dist/css/tabler-payments.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('dist/css/tabler-vendors.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('dist/css/demo.min.css') }}" rel="stylesheet" />
+
 
     <style>
     @import url('https://rsms.me/inter/inter.css');
@@ -61,18 +62,18 @@
         <div class="page-wrapper">
             <!-- Page header -->
             <!-- page-header.blade.php -->
-            <x-alerts> </x-alerts>
+            <!-- <x-alerts> </x-alerts> -->
             <!-- custom-alerts.blade.php -->
             @yield('posts.index')
             @yield('posts.create')
             @yield('posts.edit')
             @yield('posts.detail')
-            <!-- @yield('login')
+            @yield('login')
             @yield('categories.index')
             @yield('categories.create')
             @yield('categories.edit')
             @yield('categories.detail')
-            @yield('editprofile') -->
+            @yield('editprofile')
         </div>
         <!-- footer.blade.php -->
         <x-footer> </x-footer>
@@ -97,6 +98,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+    // Kiểm tra xem có thông điệp success trong Session không
+    var successMessage = "{{ session('success') }}";
+    if (successMessage) {
+        // Hiển thị toast khi có thông điệp success
+        $.toast({
+            heading: 'Success',
+            text: successMessage,
+            showHideTransition: 'slide',
+            icon: 'success'
+        });
+    }
+});
+$(document).ready(function() {
+    // Kiểm tra xem có thông điệp error trong Session không
+    var errorMessage = "{{ session('error') }}";
+    if (errorMessage) {
+        // Hiển thị toast khi có thông điệp error
+        $.toast({
+            heading: 'Error',
+            text: errorMessage,
+            showHideTransition: 'slide',
+            icon: 'error'
+        });
+    }
 });
 </script>
 

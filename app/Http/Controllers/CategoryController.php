@@ -7,6 +7,7 @@ use App\Http\Requests\Category\UpdateRequest;
 use App\Models\Category;
 use App\Models\Posts;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\Datatables;
 
 class CategoryController extends Controller
 {
@@ -15,15 +16,35 @@ class CategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    // public function index(Request $request)
+    // {
+    //     //
+    //     $perPage = 5;
+    //     $search = $request->input('search');
+    //     $entriesCount = Category::where('name', 'like', '%' . $search . '%')->count();
+    //     $categories = Category::orderBy('created_at', 'DESC')->where('name', 'like', '%' . $search . '%')->paginate($perPage);
+
+    //     return response()->view('categories.index', compact('entriesCount', 'categories', 'search'));
+    // }
     public function index(Request $request)
     {
-        //
-        $perPage = 5;
-        $search = $request->input('search');
-        $entriesCount = Category::where('name', 'like', '%' . $search . '%')->count();
-        $categories = Category::orderBy('created_at', 'DESC')->where('name', 'like', '%' . $search . '%')->paginate($perPage);
+        if ($request->ajax()) {
+            $data = Category::latest()->get();
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-primary btn-sm">Edit</a> 
+                    <a href="' . route('categories.detail', ['slug' => $row->slug]) . '" class="detail btn btn-info btn-sm">Detail</a> ';
+                    return $actionBtn;
+                })
+                ->addColumn('DT_RowId', function($row) {
+                    return $row->id;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        return view('categories.index');
 
-        return response()->view('categories.index', compact('entriesCount', 'categories', 'search'));
     }
 
     /**
@@ -47,18 +68,27 @@ class CategoryController extends Controller
      */
     public function store(StoreRequest $request)
     {
-        $category = new Category();
+        try {
+            $category = new Category();
 
-        $category->name = $request->name;
-        $category->slug = $request->slug;
-        $category->status = $request->status;
+            $category->name = $request->name;
+            $category->slug = $request->slug;
+            $category->status = $request->status;
 
-        if ($category->status == 0) {
-            return redirect()->back()->withInput()->with('error', 'Invalid status selected');
+            if ($category->status == 0) {
+                return redirect()->back()->withInput()->with('error', 'Invalid status selected');
+            }
+
+            $category->save();
+            session()->flash('success', 'Category created successfully');
+            return redirect()->route('categories.index')->with('success', 'Create category successfully');
+        } catch (\Exception $e) {
+            // Nếu có lỗi, lưu thông điệp lỗi vào Session
+            session()->flash('error', 'Error creating category: ' . $e->getMessage());
+
+            // Chuyển hướng về trang create với thông điệp lỗi
+            return redirect()->route('categories.create')->withInput();
         }
-
-        $category->save();
-        return redirect()->route('categories.index')->with('success', 'Create category successfully');
     }
 
     /**
@@ -105,7 +135,7 @@ class CategoryController extends Controller
                 $category->status = $data['status'];
                 $category->save();
             }
-
+            session()->flash('success', 'Category updated successfully');
             return redirect()->route('categories.index')->with('success', 'Update status successfully');
         }
 
@@ -121,6 +151,17 @@ class CategoryController extends Controller
         $category->save();
 
         return redirect()->route('categories.index')->with('success', 'Update category successfully');
+    }
+
+    public function destroy($id)
+    {
+        $category = Category::findOrFail($id);
+        $this->authorize('deleteCategory', $category);
+
+        // Xóa bài đăng
+        $category->delete();
+
+        return response()->json(['message' => 'Delete category successfully']);
     }
 
     /**

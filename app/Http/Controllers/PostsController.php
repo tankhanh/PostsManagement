@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Sunra\PhpSimple\HtmlDomParser;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\Datatables;
 
 class PostsController extends Controller
 {
@@ -22,15 +23,23 @@ class PostsController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = 5;
-        $search = $request->input('search');
-        $entriesCount = Posts::where('title', 'like', '%' . $search . '%')->count();
-        $posts = Posts::orderBy('created_at', 'DESC')->where('title', 'like', '%' . $search . '%')->paginate($perPage);
-
-        return response()->view('posts.index', compact('entriesCount', 'posts', 'search'));
+        if ($request->ajax()) {
+            $data = Posts::with('category')->latest()->get();
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $actionBtn = '<a href="javascript:void(0)" class="edit btn btn-primary btn-sm">Edit</a> 
+                    <a href="' . route('posts.detail', ['slug' => $row->slug]) . '" class="detail btn btn-info btn-sm">Detail</a> ';
+                    return $actionBtn;
+                })
+                ->addColumn('DT_RowId', function($row) {
+                    return $row->id;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        return view('posts.index');
     }
-
-
     /**
      * Show the form for creating a new resource.
      *
@@ -92,7 +101,7 @@ class PostsController extends Controller
             }
 
             $post->save();
-
+            session()->flash('success', 'Post created successfully');
             return redirect()->route('posts.index')->with('success', 'Create post successfully');
         } catch (ValidationException $e) {
             // Validation failed, delete any temporary images
@@ -113,7 +122,7 @@ class PostsController extends Controller
             // Xóa các hình ảnh tạm thời từ trường content
             $contentImages = $request->input('contentImages', []);
             $this->deleteImages($contentImages);
-
+            session()->flash('error', 'Error creating category: ' . $e->getMessage());
             return redirect()->back()->withInput()->with('error', 'Error creating post: ' . $e->getMessage());
         }
     }
@@ -159,7 +168,7 @@ class PostsController extends Controller
     {
         $post = Posts::findOrFail($id);
         // Kiểm tra quyền truy cập sử dụng policy
-        $this->authorize('update-post', $post);
+        $this->authorize('updatePost', $post);
 
         $post->title = $request->title;
         $post->is_featured = $request->is_featured;
@@ -219,8 +228,8 @@ class PostsController extends Controller
         }
 
         $post->save();
-
-        return redirect()->route('posts.detail', ['slug' => $post->slug])->with('success', 'Update post successfully');
+        session()->flash('success', 'Post created successfully');
+        return redirect()->route('posts.index', ['slug' => $post->slug])->with('success', 'Update post successfully');
     }
 
     /**
@@ -229,21 +238,6 @@ class PostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    // public function destroy($id)
-    // {
-    //     $post = Posts::findOrFail($id);
-
-    //     // Xóa tệp hình ảnh nếu tồn tại
-    //     $postPath = public_path('uploads/image/' . $post->image);
-    //     if (file_exists($postPath)) {
-    //         unlink($postPath);
-    //     }
-
-    //     // Xóa bài đăng
-    //     // $post->delete();
-
-    //     return redirect()->route('posts.index')->with('success', 'Delete post successfully');
-    // }
 
     public function deleteMultiple(Request $request)
     {
@@ -322,6 +316,7 @@ class PostsController extends Controller
     }
     protected function deleteImagesInContent($imagePathsInContent)
     {
+        dd($imagePathsInContent);
         foreach ($imagePathsInContent as $imagePath) {
             // Xây dựng đường dẫn đầy đủ của hình ảnh
             $fullImagePath = ('uploads/gallery/' . $imagePath);
@@ -350,6 +345,70 @@ class PostsController extends Controller
             return redirect()->route('posts.index')->with('success', 'Cập nhật trạng thái thành công');
         } else {
             return redirect()->route('posts.index')->with('error', 'Không có dữ liệu trạng thái được cung cấp');
+        }
+    }
+
+// Xóa một item
+
+    public function destroy($id)
+    {
+        $post = Posts::findOrFail($id);
+        $this->authorize('updatePost', $post);
+
+        // Xóa tệp hình ảnh từ trường content nếu tồn tại
+        if ($post->content) {
+            $imagePathsInContent = $this->getPaths($post->content);
+            $this->deletePic($imagePathsInContent);
+        }
+
+        // Xóa tệp hình ảnh từ trường image nếu tồn tại
+        if ($post->image) {
+            $imagePath = 'uploads/image/' . $post->image;
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+        }
+
+        // Xóa bài đăng
+        $post->delete();
+
+        return response()->json(['message' => 'Delete post successfully']);
+    }
+
+    // Thêm hàm mới để lấy danh sách đường dẫn ảnh từ nội dung
+    protected function getPaths($content)
+    {
+        $imagePaths = [];
+
+        $dom = new \DOMDocument;
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($content);
+        libxml_clear_errors();
+
+        $images = $dom->getElementsByTagName('img');
+
+        foreach ($images as $image) {
+            $src = $image->getAttribute('src');
+
+            if (!empty($src)) {
+                $imageName = basename($src);
+
+                $imagePaths[] = $imageName;
+            }
+        }
+
+        return $imagePaths;
+    }
+
+// Thêm hàm mới để xóa ảnh trong thư mục gallery
+    protected function deletePic($imagePathsInContent)
+    {
+        foreach ($imagePathsInContent as $imagePath) {
+            $fullImagePath = 'uploads/gallery/' . $imagePath;
+
+            if (Storage::disk('public')->exists($fullImagePath)) {
+                Storage::disk('public')->delete($fullImagePath);
+            }
         }
     }
 }

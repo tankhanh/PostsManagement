@@ -29,6 +29,16 @@ class PostPolicy
         return $user->id === $post->user_id;
     }
 
+    public function updatePost(Account $user, Posts $post)
+    {
+        return $user->role == 1; // Chỉ admin có thể cập nhật trạng thái
+    }
+
+    public function deletePost(Account $user, Posts $post)
+    {
+        return $user->role == 1; // Chỉ admin có thể xóa nhiều bài viết
+    }
+
     public function deleteMultiple(Account $user)
     {
         return $user->role == 1; // Chỉ admin có thể xóa nhiều bài viết

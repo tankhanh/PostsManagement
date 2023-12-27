@@ -1,6 +1,16 @@
 @extends('layouts.app')
+@section('title', 'Category Create')
 @section('categories.create')
 @section('module', 'Create Category')
+<!-- Parsley CSS -->
+<link rel="stylesheet" href="https://parsleyjs.org/src/parsley.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Parsley JS -->
+<script src="https://parsleyjs.org/dist/parsley.min.js"></script>
+
+
 <style>
 .btn-list {
     visibility: hidden;
@@ -42,7 +52,7 @@ function ChangeToSlug() {
     document.getElementById('slug').value = slug;
 }
 </script>
-<form method="post" action="{{ route('categories.store') }}">
+<form method="post" action="{{ route('categories.store') }}" data-parsley-validate>
     @csrf
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -54,7 +64,7 @@ function ChangeToSlug() {
                         <div class="mb-3">
                             <label class="form-label">Name</label>
                             <input id="title" type="text" class="form-control" name="name" placeholder="Enter title"
-                                onkeyup="ChangeToSlug();" value="">
+                                onkeyup="ChangeToSlug();" value="" data-parsley-required="true">
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -66,7 +76,7 @@ function ChangeToSlug() {
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="form-label">Status</label>
-                            <select class="form-control" name="status">
+                            <select class="form-control" name="status" id="status">
                                 <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>--- Root ---</option>
                                 <option value="1" {{ old('status') == 1 ? 'selected' : '' }}>Show</option>
                                 <option value="2" {{ old('status') == 2 ? 'selected' : '' }}>Hidden</option>
@@ -78,7 +88,8 @@ function ChangeToSlug() {
                     <a href="{{route('categories.index')}}" class="btn btn-link link-secondary" data-bs-dismiss="modal">
                         Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary ms-auto" data-bs-dismiss="modal">
+                    <button type="submit" class="btn btn-primary ms-auto" data-bs-dismiss="modal"
+                        data-parsley-trigger="click">
                         <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
                             stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
@@ -93,5 +104,25 @@ function ChangeToSlug() {
             </div>
         </div>
 </form>
+<script>
+$(document).ready(function() {
+    // Khởi tạo Parsley cho toàn bộ biểu mẫu
+    var form = $('form[data-parsley-validate]');
+    form.parsley();
+
+    // Kiểm tra tính hợp lệ của tất cả các trường biểu mẫu khi trang tải
+    // form.parsley().validate();
+});
+$('form[data-parsley-validate]').submit(function(e) {
+    // Kiểm tra giá trị của trường "status"
+    var statusValue = $('#status').val();
+
+    // Nếu giá trị là 0, hiển thị thông báo và ngăn chặn form được submit
+    if (statusValue == 0) {
+        alert('Please select a status other than --- Root ---');
+        e.preventDefault(); // Ngăn chặn form được submit
+    }
+});
+</script>
 
 @endsection
